@@ -418,9 +418,8 @@ for epoch in range(args.start_epoch, args.epochs):
             'epoch': epoch + 1,
             'state_dict': model.state_dict(),
             'best_prec1': best_prec1,
-            'optimizer': optimizer.state_dict(),
-            'mask': early_bird_30.masks[-1]
-            }, is_best, 'EB-30-'+str(epoch+1), filepath=args.save)
+            'optimizer': optimizer.state_dict()
+            }, is_best, 'EB-30-'+str(epoch+1), filepath=args.save, mask=early_bird_30.masks[-1])
             flag_30 = False
     if early_bird_50.early_bird_emerge(model_list, iterations):
         print("[early_bird_50] Find EB!!!!!!!!!, epoch: "+str(epoch))
@@ -429,9 +428,8 @@ for epoch in range(args.start_epoch, args.epochs):
             'epoch': epoch + 1,
             'state_dict': model.state_dict(),
             'best_prec1': best_prec1,
-            'optimizer': optimizer.state_dict(),
-            'mask': early_bird_50.masks[-1]
-            }, is_best, 'EB-50-'+str(epoch+1), filepath=args.save)
+            'optimizer': optimizer.state_dict()
+            }, is_best, 'EB-50-'+str(epoch+1), filepath=args.save, mask=early_bird_50.masks[-1])
             flag_50 = False
     if early_bird_70.early_bird_emerge(model_list, iterations):
         print("[early_bird_70] Find EB!!!!!!!!!, epoch: "+str(epoch))
@@ -440,9 +438,8 @@ for epoch in range(args.start_epoch, args.epochs):
             'epoch': epoch + 1,
             'state_dict': model.state_dict(),
             'best_prec1': best_prec1,
-            'optimizer': optimizer.state_dict(),
-            'mask': early_bird_70.masks[-1]
-            }, is_best, 'EB-70-'+str(epoch+1), filepath=args.save)
+            'optimizer': optimizer.state_dict()
+            }, is_best, 'EB-70-'+str(epoch+1), filepath=args.save, mask=early_bird_70.masks[-1])
             flag_70 = False
     if epoch in args.schedule:
         for param_group in optimizer.param_groups:
@@ -457,26 +454,20 @@ for epoch in range(args.start_epoch, args.epochs):
         'epoch': epoch + 1,
         'state_dict': model.state_dict(),
         'best_prec1': best_prec1,
-        'optimizer': optimizer.state_dict(),
-        'mask': early_bird_30.masks[-1],
-        'suff': '30'
-    }, is_best, epoch, filepath=args.save)
+        'optimizer': optimizer.state_dict()
+    }, is_best, epoch, filepath=args.save, mask=early_bird_30.masks[-1], suff='30')
     save_checkpoint({
         'epoch': epoch + 1,
         'state_dict': model.state_dict(),
         'best_prec1': best_prec1,
-        'optimizer': optimizer.state_dict(),
-        'mask': early_bird_50.masks[-1],
-        'suff': '50'
-    }, is_best, epoch, filepath=args.save)
+        'optimizer': optimizer.state_dict()
+    }, is_best, epoch, filepath=args.save, mask=early_bird_50.masks[-1], suff='50')
     save_checkpoint({
         'epoch': epoch + 1,
         'state_dict': model.state_dict(),
         'best_prec1': best_prec1,
-        'optimizer': optimizer.state_dict(),
-        'mask': early_bird_70.masks[-1],
-        'suff': '70'
-    }, is_best, epoch, filepath=args.save)
+        'optimizer': optimizer.state_dict()
+    }, is_best, epoch, filepath=args.save, mask=early_bird_70.masks[-1], suff='70')
 
 
     # model = copy.deepcopy(model_list[-1])
