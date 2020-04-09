@@ -225,7 +225,7 @@ def save_checkpoint(state, is_best, epoch, filepath, mask=None, suff=''):
         if is_best:
             shutil.copyfile(filename, os.path.join(filepath, 'model_best_%s.pth.tar' % suff))
             if mask is not None:
-                shutil.copyfile(filepath_m, os.path.join(filepath_m, 'model_best_m_%s.pth.tar' % suff))
+                shutil.copyfile(filepath_m, os.path.join(filepath, 'model_best_m_%s.pth.tar' % suff))
 
 if args.resume:
     if os.path.isfile(args.resume):
