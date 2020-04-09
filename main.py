@@ -419,6 +419,7 @@ for epoch in range(args.start_epoch, args.epochs):
             'state_dict': model.state_dict(),
             'best_prec1': best_prec1,
             'optimizer': optimizer.state_dict(),
+            'mask': early_bird_30.masks[-1]
             }, is_best, 'EB-30-'+str(epoch+1), filepath=args.save)
             flag_30 = False
     if early_bird_50.early_bird_emerge(model_list, iterations):
@@ -429,6 +430,7 @@ for epoch in range(args.start_epoch, args.epochs):
             'state_dict': model.state_dict(),
             'best_prec1': best_prec1,
             'optimizer': optimizer.state_dict(),
+            'mask': early_bird_50.masks[-1]
             }, is_best, 'EB-50-'+str(epoch+1), filepath=args.save)
             flag_50 = False
     if early_bird_70.early_bird_emerge(model_list, iterations):
@@ -439,6 +441,7 @@ for epoch in range(args.start_epoch, args.epochs):
             'state_dict': model.state_dict(),
             'best_prec1': best_prec1,
             'optimizer': optimizer.state_dict(),
+            'mask': early_bird_70.masks[-1]
             }, is_best, 'EB-70-'+str(epoch+1), filepath=args.save)
             flag_70 = False
     if epoch in args.schedule:
@@ -455,7 +458,22 @@ for epoch in range(args.start_epoch, args.epochs):
         'state_dict': model.state_dict(),
         'best_prec1': best_prec1,
         'optimizer': optimizer.state_dict(),
-    }, is_best, epoch, filepath=args.save)
+        'mask': early_bird_30.masks[-1]
+    }, is_best, epoch, filepath=args.save[:-8]+'_30.pht.tar')
+    save_checkpoint({
+        'epoch': epoch + 1,
+        'state_dict': model.state_dict(),
+        'best_prec1': best_prec1,
+        'optimizer': optimizer.state_dict(),
+        'mask': early_bird_50.masks[-1]
+    }, is_best, epoch, filepath=args.save[:-8]+'_50.pht.tar')
+    save_checkpoint({
+        'epoch': epoch + 1,
+        'state_dict': model.state_dict(),
+        'best_prec1': best_prec1,
+        'optimizer': optimizer.state_dict(),
+        'mask': early_bird_70.masks[-1]
+    }, is_best, epoch, filepath=args.save[:-8]+'_70.pht.tar')
 
 
     # model = copy.deepcopy(model_list[-1])
