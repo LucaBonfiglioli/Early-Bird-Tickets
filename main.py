@@ -458,7 +458,7 @@ for epoch in range(args.start_epoch, args.epochs):
         'state_dict': model.state_dict(),
         'best_prec1': best_prec1,
         'optimizer': optimizer.state_dict(),
-        'mask': early_bird_30.masks[-1]
+        'mask': early_bird_30.masks[-1],
         'suff': '30'
     }, is_best, epoch, filepath=args.save)
     save_checkpoint({
@@ -466,7 +466,7 @@ for epoch in range(args.start_epoch, args.epochs):
         'state_dict': model.state_dict(),
         'best_prec1': best_prec1,
         'optimizer': optimizer.state_dict(),
-        'mask': early_bird_50.masks[-1]
+        'mask': early_bird_50.masks[-1],
         'suff': '50'
     }, is_best, epoch, filepath=args.save)
     save_checkpoint({
@@ -474,7 +474,7 @@ for epoch in range(args.start_epoch, args.epochs):
         'state_dict': model.state_dict(),
         'best_prec1': best_prec1,
         'optimizer': optimizer.state_dict(),
-        'mask': early_bird_70.masks[-1]
+        'mask': early_bird_70.masks[-1],
         'suff': '70'
     }, is_best, epoch, filepath=args.save)
 
