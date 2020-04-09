@@ -15,6 +15,9 @@ from filter import *
 from scipy.ndimage import filters
 from compute_flops import print_model_param_flops
 
+import score
+import copy
+
 # Training settings
 parser = argparse.ArgumentParser(description='PyTorch Slimming CIFAR training')
 parser.add_argument('--dataset', type=str, default='cifar10',
@@ -198,20 +201,31 @@ if args.dataset == 'imagenet':
 
 optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
 
-def save_checkpoint(state, is_best, epoch, filepath):
+def save_checkpoint(state, is_best, epoch, filepath, mask=None):
     if epoch == 'init':
         filepath = os.path.join(filepath, 'init.pth.tar')
         torch.save(state, filepath)
+        if mask is not None:
+            filepath_m = os.path.join(filepath, 'init_m.pth.tar')
+            torch.save(mask, filepath_m)
     elif 'EB' in str(epoch):
         filepath = os.path.join(filepath, epoch+'.pth.tar')
         torch.save(state, filepath)
+        if mask is not None:
+            filepath_m = os.path.join(filepath, epoch+'_m.pth.tar')
+            torch.save(mask, filepath_m)
     else:
         filename = os.path.join(filepath, 'ckpt'+str(epoch)+'.pth.tar')
         torch.save(state, filename)
+        if mask is not None:
+            filepath_m = os.path.join(filepath, 'ckpt'+str(epoch)+'_m.pth.tar')
+            torch.save(mask, filepath_m)
         # filename = os.path.join(filepath, 'ckpt.pth.tar')
         # torch.save(state, filename)
         if is_best:
             shutil.copyfile(filename, os.path.join(filepath, 'model_best.pth.tar'))
+            if mask is not None:
+                shutil.copyfile(filepath_m, os.path.join(filepath_m, 'model_best_m.pth.tar'))
 
 if args.resume:
     if os.path.isfile(args.resume):
@@ -304,41 +318,52 @@ def test():
     return np.round(test_acc / len(test_loader), 2)
 
 class EarlyBird():
-    def __init__(self, percent, epoch_keep=5):
+    def __init__(self, percent, epoch_keep=5, score_fn=score.large_final):
         self.percent = percent
         self.epoch_keep = epoch_keep
         self.masks = []
         self.dists = [1 for i in range(1, self.epoch_keep)]
+        self.score_fn = score_fn
 
-    def pruning(self, model, percent):
+    def pruning(self, model_list, percent, iterations):
         total = 0
-        for m in model.modules():
-            if isinstance(m, nn.BatchNorm2d):
-                total += m.weight.data.shape[0]
+        last_model = model_list[-1]
+        for module in last_model.modules():
+            if isinstance(module, nn.BatchNorm2d):
+                total += module.weight.data.shape[0]
 
-        bn = torch.zeros(total)
-        index = 0
-        for m in model.modules():
-            if isinstance(m, nn.BatchNorm2d):
-                size = m.weight.data.shape[0]
-                bn[index:(index+size)] = m.weight.data.abs().clone()
-                index += size
+        # bn = torch.zeros((total, args.epochs - args.start_epoch))
+        bn = torch.zeros((total, len(model_list)))
+        snapshot = 0
+        for model in model_list:
+            index = 0
+            for module in model.modules():
+                if isinstance(module, nn.BatchNorm2d):
+                    size = module.weight.data.shape[0]
+                    # print('module.weight.data.abs().shape', module.weight.data.abs().shape)
+                    bn[index:(index+size), snapshot] = module.weight.data.abs().clone()
+                    index += size
+            snapshot += 1
 
-        y, i = torch.sort(bn)
+        scores = self.score_fn(bn, iterations)
+        # print('scores', scores)
+        y, i = torch.sort(scores)
         thre_index = int(total * percent)
         thre = y[thre_index]
         # print('Pruning threshold: {}'.format(thre))
 
-        mask = torch.zeros(total)
-        index = 0
-        for k, m in enumerate(model.modules()):
-            if isinstance(m, nn.BatchNorm2d):
-                size = m.weight.data.numel()
-                weight_copy = m.weight.data.abs().clone()
-                _mask = weight_copy.gt(thre.cuda()).float().cuda()
-                mask[index:(index+size)] = _mask.view(-1)
-                # print('layer index: {:d} \t total channel: {:d} \t remaining channel: {:d}'.format(k, _mask.shape[0], int(torch.sum(_mask))))
-                index += size
+        mask = scores.gt(thre)
+
+        # mask = torch.zeros(total)
+        # index = 0
+        # for k, module in enumerate(last_model.modules()):
+        #     if isinstance(module, nn.BatchNorm2d):
+        #         size = module.weight.data.numel()
+        #         weight_copy = module.weight.data.abs().clone()
+        #         _mask = weight_copy.gt(thre.cuda()).float().cuda()
+        #         mask[index:(index+size)] = _mask.view(-1)
+        #         # print('layer index: {:d} \t total channel: {:d} \t remaining channel: {:d}'.format(k, _mask.shape[0], int(torch.sum(_mask))))
+        #         index += size
 
         # print('Pre-processing Successful!')
         return mask
@@ -360,9 +385,10 @@ class EarlyBird():
         else:
             return False
 
-    def early_bird_emerge(self, model):
-        mask = self.pruning(model, self.percent)
+    def early_bird_emerge(self, model_list, iterations):
+        mask = self.pruning(model_list, self.percent, iterations)
         self.put(mask)
+        print('mask sum %d' % mask.sum())
         flag = self.cal_dist()
         if flag == True:
             print(self.dists)
@@ -380,8 +406,12 @@ flag_70 = True
 early_bird_30 = EarlyBird(0.3)
 early_bird_50 = EarlyBird(0.5)
 early_bird_70 = EarlyBird(0.7)
+model_list = [copy.deepcopy(model)]
+iterations = [0]
 for epoch in range(args.start_epoch, args.epochs):
-    if early_bird_30.early_bird_emerge(model):
+    model_list.append(model)
+    iterations.append(epoch)
+    if early_bird_30.early_bird_emerge(model_list, iterations):
         print("[early_bird_30] Find EB!!!!!!!!!, epoch: "+str(epoch))
         if flag_30:
             save_checkpoint({
@@ -391,7 +421,7 @@ for epoch in range(args.start_epoch, args.epochs):
             'optimizer': optimizer.state_dict(),
             }, is_best, 'EB-30-'+str(epoch+1), filepath=args.save)
             flag_30 = False
-    if early_bird_50.early_bird_emerge(model):
+    if early_bird_50.early_bird_emerge(model_list, iterations):
         print("[early_bird_50] Find EB!!!!!!!!!, epoch: "+str(epoch))
         if flag_50:
             save_checkpoint({
@@ -401,7 +431,7 @@ for epoch in range(args.start_epoch, args.epochs):
             'optimizer': optimizer.state_dict(),
             }, is_best, 'EB-50-'+str(epoch+1), filepath=args.save)
             flag_50 = False
-    if early_bird_70.early_bird_emerge(model):
+    if early_bird_70.early_bird_emerge(model_list, iterations):
         print("[early_bird_70] Find EB!!!!!!!!!, epoch: "+str(epoch))
         if flag_70:
             save_checkpoint({
@@ -426,6 +456,9 @@ for epoch in range(args.start_epoch, args.epochs):
         'best_prec1': best_prec1,
         'optimizer': optimizer.state_dict(),
     }, is_best, epoch, filepath=args.save)
+
+
+    # model = copy.deepcopy(model_list[-1])
 
 print("Best accuracy: "+str(best_prec1))
 history_score[-1][0] = best_prec1

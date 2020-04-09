@@ -62,6 +62,7 @@ if args.model:
     if os.path.isfile(args.model):
         print("=> loading checkpoint '{}'".format(args.model))
         checkpoint = torch.load(args.model)
+        mask = torch.load(args.model[:-8]+'_m.pth.tar')
         # args.start_epoch = checkpoint['epoch']
         # best_prec1 = checkpoint['best_prec1']
         if args.multi_GPU:
@@ -113,8 +114,8 @@ cfg = []
 cfg_mask = []
 for k, m in enumerate(model.modules()):
     if isinstance(m, nn.BatchNorm2d) or isinstance(m, nn.BatchNorm1d):
-        weight_copy = m.weight.data.abs().clone()
-        mask = weight_copy.gt(thre.cuda()).float().cuda()
+        # weight_copy = m.weight.data.abs().clone()
+        # mask = weight_copy.gt(thre.cuda()).float().cuda()
         pruned = pruned + mask.shape[0] - torch.sum(mask)
         m.weight.data.mul_(mask)
         m.bias.data.mul_(mask)
