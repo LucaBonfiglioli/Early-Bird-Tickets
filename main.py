@@ -201,7 +201,7 @@ if args.dataset == 'imagenet':
 
 optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
 
-def save_checkpoint(state, is_best, epoch, filepath, mask=None):
+def save_checkpoint(state, is_best, epoch, filepath, mask=None, suff=''):
     if epoch == 'init':
         filepath = os.path.join(filepath, 'init.pth.tar')
         torch.save(state, filepath)
@@ -215,17 +215,17 @@ def save_checkpoint(state, is_best, epoch, filepath, mask=None):
             filepath_m = os.path.join(filepath, epoch+'_m.pth.tar')
             torch.save(mask, filepath_m)
     else:
-        filename = os.path.join(filepath, 'ckpt'+str(epoch)+'.pth.tar')
+        filename = os.path.join(filepath, 'ckpt'+str(epoch)+'_%s.pth.tar' % suff)
         torch.save(state, filename)
         if mask is not None:
-            filepath_m = os.path.join(filepath, 'ckpt'+str(epoch)+'_m.pth.tar')
+            filepath_m = os.path.join(filepath, 'ckpt'+str(epoch)+'_m_%s.pth.tar' % suff)
             torch.save(mask, filepath_m)
         # filename = os.path.join(filepath, 'ckpt.pth.tar')
         # torch.save(state, filename)
         if is_best:
-            shutil.copyfile(filename, os.path.join(filepath, 'model_best.pth.tar'))
+            shutil.copyfile(filename, os.path.join(filepath, 'model_best_%s.pth.tar' % suff))
             if mask is not None:
-                shutil.copyfile(filepath_m, os.path.join(filepath_m, 'model_best_m.pth.tar'))
+                shutil.copyfile(filepath_m, os.path.join(filepath_m, 'model_best_m_%s.pth.tar' % suff))
 
 if args.resume:
     if os.path.isfile(args.resume):
@@ -459,21 +459,24 @@ for epoch in range(args.start_epoch, args.epochs):
         'best_prec1': best_prec1,
         'optimizer': optimizer.state_dict(),
         'mask': early_bird_30.masks[-1]
-    }, is_best, epoch, filepath=args.save[:-8]+'_30.pht.tar')
+        'suff': '30'
+    }, is_best, epoch, filepath=args.save)
     save_checkpoint({
         'epoch': epoch + 1,
         'state_dict': model.state_dict(),
         'best_prec1': best_prec1,
         'optimizer': optimizer.state_dict(),
         'mask': early_bird_50.masks[-1]
-    }, is_best, epoch, filepath=args.save[:-8]+'_50.pht.tar')
+        'suff': '50'
+    }, is_best, epoch, filepath=args.save)
     save_checkpoint({
         'epoch': epoch + 1,
         'state_dict': model.state_dict(),
         'best_prec1': best_prec1,
         'optimizer': optimizer.state_dict(),
         'mask': early_bird_70.masks[-1]
-    }, is_best, epoch, filepath=args.save[:-8]+'_70.pht.tar')
+        'suff': '70'
+    }, is_best, epoch, filepath=args.save)
 
 
     # model = copy.deepcopy(model_list[-1])
