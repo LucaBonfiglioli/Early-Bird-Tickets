@@ -203,14 +203,14 @@ optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, we
 
 def save_checkpoint(state, is_best, epoch, filepath, mask=None, suff=''):
     if epoch == 'init':
-        filepath = os.path.join(filepath, 'init.pth.tar')
-        torch.save(state, filepath)
+        filepath_ = os.path.join(filepath, 'init.pth.tar')
+        torch.save(state, filepath_)
         if mask is not None:
             filepath_m = os.path.join(filepath, 'init_m.pth.tar')
             torch.save(mask, filepath_m)
     elif 'EB' in str(epoch):
-        filepath = os.path.join(filepath, epoch+'.pth.tar')
-        torch.save(state, filepath)
+        filepath_ = os.path.join(filepath, epoch+'.pth.tar')
+        torch.save(state, filepath_)
         if mask is not None:
             filepath_m = os.path.join(filepath, epoch+'_m.pth.tar')
             torch.save(mask, filepath_m)
