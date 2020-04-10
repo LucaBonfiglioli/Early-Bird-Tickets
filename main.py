@@ -201,6 +201,7 @@ if args.dataset == 'imagenet':
 
 optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
 
+
 def save_checkpoint(state, is_best, epoch, filepath, mask=None, suff=''):
     if epoch == 'init':
         filepath_ = os.path.join(filepath, 'init.pth.tar')
@@ -218,14 +219,15 @@ def save_checkpoint(state, is_best, epoch, filepath, mask=None, suff=''):
         filename = os.path.join(filepath, 'ckpt'+str(epoch)+'_%s.pth.tar' % suff)
         torch.save(state, filename)
         if mask is not None:
-            filepath_m = os.path.join(filepath, 'ckpt'+str(epoch)+'_m_%s.pth.tar' % suff)
+            filepath_m = os.path.join(filepath, 'ckpt'+str(epoch)+'_%s_m.pth.tar' % suff)
             torch.save(mask, filepath_m)
         # filename = os.path.join(filepath, 'ckpt.pth.tar')
         # torch.save(state, filename)
         if is_best:
             shutil.copyfile(filename, os.path.join(filepath, 'model_best_%s.pth.tar' % suff))
             if mask is not None:
-                shutil.copyfile(filepath_m, os.path.join(filepath, 'model_best_m_%s.pth.tar' % suff))
+                shutil.copyfile(filepath_m, os.path.join(filepath, 'model_best_%s_m.pth.tar' % suff))
+
 
 if args.resume:
     if os.path.isfile(args.resume):
