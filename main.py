@@ -18,6 +18,8 @@ from compute_flops import print_model_param_flops
 import score
 import copy
 
+default_score = score.large_final
+
 # Training settings
 parser = argparse.ArgumentParser(description='PyTorch Slimming CIFAR training')
 parser.add_argument('--dataset', type=str, default='cifar10',
@@ -320,7 +322,7 @@ def test():
     return np.round(test_acc / len(test_loader), 2)
 
 class EarlyBird():
-    def __init__(self, percent, epoch_keep=5, score_fn=score.large_final):
+    def __init__(self, percent, epoch_keep=5, score_fn=default_score):
         self.percent = percent
         self.epoch_keep = epoch_keep
         self.masks = []

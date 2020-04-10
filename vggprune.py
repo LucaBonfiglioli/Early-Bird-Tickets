@@ -63,6 +63,7 @@ if args.model:
         print("=> loading checkpoint '{}'".format(args.model))
         checkpoint = torch.load(args.model)
         mask = torch.load(args.model[:-8]+'_m.pth.tar')
+        # mask = torch.load('./baseline/vgg16-cifar100/ckpt1_m_30.pth.tar')
         # args.start_epoch = checkpoint['epoch']
         # best_prec1 = checkpoint['best_prec1']
         if args.multi_GPU:
@@ -84,10 +85,12 @@ if args.dataset == 'imagenet':
     # print('original model flops: ', print_model_param_flops(model, 224, True))
     pass
 else:
-    print('original model flops: ', print_model_param_flops(model, 32, True))
-
+    # print('original model flops: ', print_model_param_flops(model, 32, True))
+    print('???')
 if args.cuda:
-    model.cuda()
+    print('test')
+    model = model.cuda()
+    mask = mask.cuda()
 
 total = 0
 for m in model.modules():
@@ -110,20 +113,24 @@ thre_index = int(total * args.percent)
 thre = y[thre_index]
 
 pruned = 0
+cur = 0
 cfg = []
 cfg_mask = []
 for k, m in enumerate(model.modules()):
     if isinstance(m, nn.BatchNorm2d) or isinstance(m, nn.BatchNorm1d):
         # weight_copy = m.weight.data.abs().clone()
         # mask = weight_copy.gt(thre.cuda()).float().cuda()
-        pruned = pruned + mask.shape[0] - torch.sum(mask)
-        m.weight.data.mul_(mask)
-        m.bias.data.mul_(mask)
-        if int(torch.sum(mask)) > 0:
+        num_param = m.weight.data.nelement()
+        mask_m = mask[cur:cur+num_param].float()
+        cur += num_param
+        pruned = pruned + num_param - torch.sum(mask_m)
+        m.weight.data.mul_(mask_m)
+        m.bias.data.mul_(mask_m)
+        if int(torch.sum(mask_m)) > 0:
             cfg.append(int(torch.sum(mask)))
-        cfg_mask.append(mask.clone())
+        cfg_mask.append(mask_m.clone())
         print('layer index: {:d} \t total channel: {:d} \t remaining channel: {:d}'.
-            format(k, mask.shape[0], int(torch.sum(mask))))
+            format(k, mask_m.shape[0], int(torch.sum(mask_m))))
     elif isinstance(m, nn.MaxPool2d):
         cfg.append('M')
 
