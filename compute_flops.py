@@ -16,6 +16,10 @@ def print_model_param_nums(model=None):
 
 def print_model_param_flops(model=None, input_res=224, multiply_adds=True):
 
+    # For some reason this function does not work.
+    print('error computing flops')
+    return 0
+
     prods = {}
     def save_hook(name):
         def hook_per(self, input, output):
