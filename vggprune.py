@@ -127,7 +127,7 @@ for k, m in enumerate(model.modules()):
         m.weight.data.mul_(mask_m)
         m.bias.data.mul_(mask_m)
         if int(torch.sum(mask_m)) > 0:
-            cfg.append(int(torch.sum(mask)))
+            cfg.append(int(torch.sum(mask_m)))
         cfg_mask.append(mask_m.clone())
         print('layer index: {:d} \t total channel: {:d} \t remaining channel: {:d}'.
             format(k, mask_m.shape[0], int(torch.sum(mask_m))))
