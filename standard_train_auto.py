@@ -31,7 +31,7 @@ base_retrain = 'CUDA_VISIBLE_DEVICES=0 python main_c.py \
 --dataset cifar100 \
 --arch vgg \
 --depth 16 \
---lr '+lr+'\
+--lr '+lr+' \
 --epochs 160 \
 --schedule 80 120 \
 --batch-size 256 \
@@ -55,7 +55,7 @@ base_eb_retrain = 'CUDA_VISIBLE_DEVICES=0 python main_c.py \
 --dataset cifar100 \
 --arch vgg \
 --depth 16 \
---lr '+lr+'\
+--lr '+lr+' \
 --epochs 160 \
 --schedule 80 120 \
 --batch-size 256 \
