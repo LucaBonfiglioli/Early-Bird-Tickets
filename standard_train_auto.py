@@ -3,7 +3,7 @@ import os
 lr = '0.1'
 save = 'vgg16-cifar100_lf'
 pr_list = [30, 50, 70]
-snap_list = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150]
+snap_list = [9, 19, 29, 39, 49, 59, 69, 79, 89, 99, 109, 119, 129, 139, 149, 159]
 
 base_search = 'CUDA_VISIBLE_DEVICES=0 python main.py \
 --dataset cifar100 \

@@ -19,9 +19,9 @@ def init(name, force=False):
             # [runs]
             'unpruned_test_accuracy': [],
             # [runs, pr, epoch]
-            'pruned_test_accuracy': [[[]]],
+            'pruned_test_accuracy': [],
             # [runs, pr]
-            'eb_test_accuracy': [[]],
-            'eb_epoch': [[]]
+            'eb_test_accuracy': [],
+            'eb_epoch': []
         }
         store_json(name, data)
