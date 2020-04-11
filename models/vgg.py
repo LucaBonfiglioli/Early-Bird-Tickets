@@ -22,6 +22,8 @@ class vgg(nn.Module):
 
         self.feature = self.make_layers(cfg, True)
 
+        print(cfg[-1], dataset)
+
         if dataset == 'cifar10':
             num_classes = 10
         elif dataset == 'cifar100':

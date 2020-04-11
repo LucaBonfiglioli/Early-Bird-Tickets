@@ -66,12 +66,13 @@ base_eb_retrain = 'CUDA_VISIBLE_DEVICES=0 python main_c.py \
 --scratch ./baseline/'+save+'/EB_prune%d_%d/pruned.pth.tar \
 --start-epoch %d'
 
-print('EXECUTING SEARCH')
+print('SEARCHING')
 os.system(base_search)
 for pr in pr_list:
     for snap in snap_list:
-        print('RETRAINING PR %d AND SNAP %d' % (pr, snap))
+        print('PRUNING PR %d AND SNAP %d' % (pr, snap))
         os.system(base_prune % (snap, pr, snap, pr))
+        print('RETRAINING PR %d AND SNAP %d' % (pr, snap))
         os.system(base_retrain % (snap, pr, snap, pr, snap))
     files = os.listdir('/baseline/'+save)
     b = []
@@ -81,6 +82,7 @@ for pr in pr_list:
     if len(b) == 1:
         b = b[0]
     snap = int(b.split('_')[2][0:-8])
-    print('RETRAINING EB PR %d' % pr)
+    print('PRUNING EB PR %d' % pr)
     os.system(base_eb_prune % (snap, pr, snap, pr))
+    print('RETRAINING EB PR %d' % pr)
     os.system(base_eb_retrain % (snap, pr, snap, pr, snap))
