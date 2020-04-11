@@ -17,6 +17,7 @@ from compute_flops import print_model_param_flops
 
 import score
 import copy
+import results_manager as resman
 
 default_score = score.large_final
 
@@ -423,7 +424,7 @@ for epoch in range(args.start_epoch, args.epochs):
             'state_dict': model.state_dict(),
             'best_prec1': best_prec1,
             'optimizer': optimizer.state_dict()
-            }, is_best, 'EB-30-'+str(epoch+1), filepath=args.save, mask=early_bird_30.masks[-1])
+            }, is_best, 'EB_30_'+str(epoch+1), filepath=args.save, mask=early_bird_30.masks[-1])
             flag_30 = False
     if early_bird_50.early_bird_emerge(model_list, iterations):
         print("[early_bird_50] Find EB!!!!!!!!!, epoch: "+str(epoch))
@@ -433,7 +434,7 @@ for epoch in range(args.start_epoch, args.epochs):
             'state_dict': model.state_dict(),
             'best_prec1': best_prec1,
             'optimizer': optimizer.state_dict()
-            }, is_best, 'EB-50-'+str(epoch+1), filepath=args.save, mask=early_bird_50.masks[-1])
+            }, is_best, 'EB_50_'+str(epoch+1), filepath=args.save, mask=early_bird_50.masks[-1])
             flag_50 = False
     if early_bird_70.early_bird_emerge(model_list, iterations):
         print("[early_bird_70] Find EB!!!!!!!!!, epoch: "+str(epoch))
@@ -443,7 +444,7 @@ for epoch in range(args.start_epoch, args.epochs):
             'state_dict': model.state_dict(),
             'best_prec1': best_prec1,
             'optimizer': optimizer.state_dict()
-            }, is_best, 'EB-70-'+str(epoch+1), filepath=args.save, mask=early_bird_70.masks[-1])
+            }, is_best, 'EB_70_'+str(epoch+1), filepath=args.save, mask=early_bird_70.masks[-1])
             flag_70 = False
     if epoch in args.schedule:
         for param_group in optimizer.param_groups:
@@ -479,3 +480,8 @@ for epoch in range(args.start_epoch, args.epochs):
 print("Best accuracy: "+str(best_prec1))
 history_score[-1][0] = best_prec1
 np.savetxt(os.path.join(args.save, 'record.txt'), history_score, fmt = '%10.5f', delimiter=',')
+resfile = 'results/'+args.save.split('/')[-1]+'.json'
+resman.init(resfile)
+results = resman.load_json(resfile)
+results['unpruned_test_accuracy'].append(best_prec1)
+resman.store_json(resfile, results)

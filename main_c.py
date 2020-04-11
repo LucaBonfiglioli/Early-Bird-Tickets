@@ -13,6 +13,8 @@ from torch.autograd import Variable
 import models
 from compute_flops import print_model_param_flops
 
+import results_manager as resman
+
 
 # Training settings
 parser = argparse.ArgumentParser(description='PyTorch Slimming CIFAR training')
@@ -276,3 +278,20 @@ for epoch in range(args.start_epoch, args.epochs):
 print("Best accuracy: "+str(best_prec1))
 history_score[-1][0] = best_prec1
 np.savetxt(os.path.join(args.save, 'record.txt'), history_score, fmt = '%10.5f', delimiter=',')
+
+resfile = 'results/'+args.save.split('/')[-2]+'.json'
+pr = int(args.save.split('/')[-2].split('_')[2][0:2])
+results = resman.load_json(resfile)
+if 'EB' not in args.save:
+    if args.start_epoch == 0 and pr == 30:
+        results['pruned_test_accuracy'].append([[]])
+    elif args.start_epoch == 0:
+        results['pruned_test_accuracy'][-1].append([])
+    results['pruned_test_accuracy'][-1][-1].append(best_prec1)
+else:
+    if args.pr == 0:
+        results['eb_test_accuracy'].append([])
+        results['eb_epoch'].append([])
+    results['eb_test_accuracy'][-1].append(best_prec1)
+    results['eb_epoch'][-1].append(args.start_epoch)
+resman.store_json(resfile, results)
