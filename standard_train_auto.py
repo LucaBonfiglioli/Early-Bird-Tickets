@@ -2,8 +2,8 @@ import os
 
 lr = '0.1'
 save = 'vgg16-cifar100_lf'
-pr_list = ['30', '50', '70']
-snap_list = ['0', '10', '20', '30', '40', '50', '60', '70', '80', '90', '100', '110', '120', '130', '140', '150']
+pr_list = [30, 50, 70]
+snap_list = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150]
 
 base_search = 'CUDA_VISIBLE_DEVICES=0 python main.py \
 --dataset cifar100 \
@@ -69,16 +69,14 @@ base_eb_retrain = 'CUDA_VISIBLE_DEVICES=0 python main_c.py \
 print('EXECUTING SEARCH')
 os.system(base_search)
 for pr in pr_list:
-    pr = int(pr)
     for snap in snap_list:
-        snap = int(snap)
         print('RETRAINING PR %d AND SNAP %d' % (pr, snap))
         os.system(base_prune % (snap, pr, snap, pr))
         os.system(base_retrain % (snap, pr, snap, pr, snap))
     files = os.listdir('/baseline/'+save)
     b = []
     for file in files:
-        if 'EB' in file and '_m.' not in file and file[3:5] == pr:
+        if 'EB' in file and '_m.' not in file and file[3:5] == str(pr):
             b.append(file)
     if len(b) == 1:
         b = b[0]
