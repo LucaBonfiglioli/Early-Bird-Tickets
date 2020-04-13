@@ -73,8 +73,8 @@ for pr in pr_list:
         print('PRUNING PR %d AND SNAP %d' % (pr, snap))
         os.system(base_prune % (snap, pr, snap, pr))
         print('RETRAINING PR %d AND SNAP %d' % (pr, snap))
-        os.system(base_retrain % (snap, pr, snap, pr, snap))
-    files = os.listdir('/baseline/'+save)
+        os.system(base_retrain % (snap, pr, snap, pr, snap + 160))
+    files = os.listdir('./baseline/'+save)
     b = []
     for file in files:
         if 'EB' in file and '_m.' not in file and file[3:5] == str(pr):
@@ -83,6 +83,6 @@ for pr in pr_list:
         b = b[0]
     snap = int(b.split('_')[2][0:-8])
     print('PRUNING EB PR %d' % pr)
-    os.system(base_eb_prune % (snap, pr, snap, pr))
+    os.system(base_eb_prune % (pr, snap, snap, pr))
     print('RETRAINING EB PR %d' % pr)
-    os.system(base_eb_retrain % (snap, pr, snap, pr, snap))
+    os.system(base_eb_retrain % (snap, pr, snap, pr, snap + 160))
