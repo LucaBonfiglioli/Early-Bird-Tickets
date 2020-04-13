@@ -69,7 +69,7 @@ if args.cuda:
 if not os.path.exists(args.save):
     os.makedirs(args.save)
 
-kwargs = {'num_workers': 8, 'pin_memory': True} if args.cuda else {}
+kwargs = {'num_workers': 6, 'pin_memory': True} if args.cuda else {}
 if args.dataset == 'cifar10':
     train_loader = torch.utils.data.DataLoader(
         datasets.CIFAR10('./data.cifar10', train=True, download=True,
@@ -122,7 +122,7 @@ else:
 
     train_loader = torch.utils.data.DataLoader(
         train_dataset, batch_size=args.batch_size, shuffle=True,
-        num_workers=16, pin_memory=True)
+        num_workers=6, pin_memory=True)
 
     test_loader = torch.utils.data.DataLoader(
         datasets.ImageFolder(valdir, transforms.Compose([
@@ -132,7 +132,7 @@ else:
             normalize,
         ])),
         batch_size=args.test_batch_size, shuffle=False,
-        num_workers=16, pin_memory=True)
+        num_workers=6, pin_memory=True)
 
 if args.dataset == 'imagenet':
     model = models.__dict__[args.arch](pretrained=False)

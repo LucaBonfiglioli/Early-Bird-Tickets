@@ -192,7 +192,7 @@ def test(model):
                 normalize,
             ])),
             batch_size=args.test_batch_size, shuffle=False,
-            num_workers=16, pin_memory=True)
+            num_workers=6, pin_memory=True)
     else:
         raise ValueError("No valid dataset is given.")
     model.eval()

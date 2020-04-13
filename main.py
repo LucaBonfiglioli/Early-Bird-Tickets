@@ -164,7 +164,7 @@ else:
 
     train_loader = torch.utils.data.DataLoader(
         train_dataset, batch_size=args.batch_size, shuffle=True,
-        num_workers=16, pin_memory=True)
+        num_workers=6, pin_memory=True)
 
     test_loader = torch.utils.data.DataLoader(
         datasets.ImageFolder(valdir, transforms.Compose([
@@ -174,7 +174,7 @@ else:
             normalize,
         ])),
         batch_size=args.test_batch_size, shuffle=False,
-        num_workers=16, pin_memory=True)
+        num_workers=6, pin_memory=True)
 
 
 if args.dataset == 'imagenet':
