@@ -285,7 +285,7 @@ if 'EB' not in args.save:
     pr = int(args.save.split('/')[-1].split('_')[1][0:2])
     if args.start_epoch < 10 and pr == 30:
         results['pruned_test_accuracy'].append([[]])
-    elif pr == 30:
+    elif args.start_epoch < 10:
         results['pruned_test_accuracy'][-1].append([])
     results['pruned_test_accuracy'][-1][-1].append(best_prec1)
 else:
