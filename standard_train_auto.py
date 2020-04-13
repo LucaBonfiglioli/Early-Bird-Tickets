@@ -4,13 +4,14 @@ lr = '0.1'
 save = 'vgg16-cifar100_lf'
 pr_list = [30, 50, 70]
 snap_list = [9, 19, 29, 39, 49, 59, 69, 79, 89, 99, 109, 119, 129, 139, 149, 159]
+epochs_base = 160
 
 base_search = 'CUDA_VISIBLE_DEVICES=0 python main.py \
 --dataset cifar100 \
 --arch vgg \
 --depth 16 \
 --lr '+lr+' \
---epochs 160 \
+--epochs %d \
 --schedule 80 120 \
 --batch-size 256 \
 --test-batch-size 256 \
@@ -32,7 +33,7 @@ base_retrain = 'CUDA_VISIBLE_DEVICES=0 python main_c.py \
 --arch vgg \
 --depth 16 \
 --lr '+lr+' \
---epochs 160 \
+--epochs %d \
 --schedule 80 120 \
 --batch-size 256 \
 --test-batch-size 128 \
@@ -56,7 +57,7 @@ base_eb_retrain = 'CUDA_VISIBLE_DEVICES=0 python main_c.py \
 --arch vgg \
 --depth 16 \
 --lr '+lr+' \
---epochs 160 \
+--epochs %d \
 --schedule 80 120 \
 --batch-size 256 \
 --test-batch-size 128 \
@@ -67,13 +68,13 @@ base_eb_retrain = 'CUDA_VISIBLE_DEVICES=0 python main_c.py \
 --start-epoch %d'
 
 print('SEARCHING')
-os.system(base_search)
+os.system(base_search % epochs_base)
 for pr in pr_list:
     for snap in snap_list:
         print('PRUNING PR %d AND SNAP %d' % (pr, snap))
         os.system(base_prune % (snap, pr, snap, pr))
         print('RETRAINING PR %d AND SNAP %d' % (pr, snap))
-        os.system(base_retrain % (snap, pr, snap, pr, snap + 160))
+        os.system(base_retrain % (snap + epochs_base, snap, pr, snap, pr, snap))
     files = os.listdir('./baseline/'+save)
     b = []
     for file in files:
@@ -85,4 +86,4 @@ for pr in pr_list:
     print('PRUNING EB PR %d' % pr)
     os.system(base_eb_prune % (pr, snap, snap, pr))
     print('RETRAINING EB PR %d' % pr)
-    os.system(base_eb_retrain % (snap, pr, snap, pr, snap + 160))
+    os.system(base_eb_retrain % (snap + epochs_base, snap, pr, snap, pr, snap))
