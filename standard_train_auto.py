@@ -6,6 +6,8 @@ save = 'vgg16-cifar100_lf'
 pr_list = [30, 50, 70]
 snap_list = [9, 19, 29, 39, 49, 59, 69, 79, 89, 99, 109, 119, 129, 139, 149, 159]
 epochs_base = 160
+lr_drop_ep1 = 80
+lr_drop_ep2 = 120
 
 torch.set_num_threads(6)
 
@@ -37,7 +39,7 @@ base_retrain = 'CUDA_VISIBLE_DEVICES=0 python main_c.py \
 --depth 16 \
 --lr '+lr+' \
 --epochs %d \
---schedule 80 120 \
+--schedule %d %d \
 --batch-size 256 \
 --test-batch-size 128 \
 --save ./baseline/'+save+'/retrain%d_%d_'+lr+' \
@@ -61,7 +63,7 @@ base_eb_retrain = 'CUDA_VISIBLE_DEVICES=0 python main_c.py \
 --depth 16 \
 --lr '+lr+' \
 --epochs %d \
---schedule 80 120 \
+--schedule %d %d \
 --batch-size 256 \
 --test-batch-size 128 \
 --save ./baseline/'+save+'/EB_retrain%d_%d_'+lr+' \
@@ -77,7 +79,7 @@ for pr in pr_list:
         print('PRUNING PR %d AND SNAP %d' % (pr, snap))
         os.system(base_prune % (snap, pr, snap, pr))
         print('RETRAINING PR %d AND SNAP %d' % (pr, snap))
-        os.system(base_retrain % (snap + epochs_base, snap, pr, snap, pr, snap))
+        os.system(base_retrain % (snap + epochs_base, lr_drop_ep1 + snap, lr_drop_ep2 + snap, snap, pr, snap, pr, snap))
     files = os.listdir('./baseline/'+save)
     b = []
     for file in files:
@@ -89,4 +91,4 @@ for pr in pr_list:
     print('PRUNING EB PR %d' % pr)
     os.system(base_eb_prune % (pr, snap, snap, pr))
     print('RETRAINING EB PR %d' % pr)
-    os.system(base_eb_retrain % (snap + epochs_base, snap, pr, snap, pr, snap))
+    os.system(base_eb_retrain % (snap + epochs_base, lr_drop_ep1 + snap, lr_drop_ep2 + snap, snap, pr, snap, pr, snap))
