@@ -1,4 +1,4 @@
-CUDA_VISIBLE_DEVICES=0 python main.py \
+OMP_NUM_THREADS=6 CUDA_VISIBLE_DEVICES=0 python main.py \
 --dataset cifar100 \
 --arch vgg \
 --depth 16 \
