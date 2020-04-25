@@ -424,7 +424,7 @@ if build_dataset:
     for m in model.modules():
         if isinstance(m, nn.BatchNorm2d):
             params = m.weight.data.nelement()
-            dataset[0].append(torch.zeros(params, num_snapshots))
+            dataset[0].append(torch.zeros(params, args.epochs - args.start_epoch))
             dataset[1].append(torch.zeros(params))
 
 for epoch in range(args.start_epoch, args.epochs):
