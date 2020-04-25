@@ -16,10 +16,13 @@ from scipy.ndimage import filters
 from compute_flops import print_model_param_flops
 
 import score
+import feature_selection as fsel
 import copy
 import results_manager as resman
 
 default_score = score.large_final
+build_dataset = True
+dataset_name = './results/datasets/vgg16-cifar100_tr0'
 
 # Training settings
 parser = argparse.ArgumentParser(description='PyTorch Slimming CIFAR training')
@@ -413,9 +416,33 @@ early_bird_50 = EarlyBird(0.5)
 early_bird_70 = EarlyBird(0.7)
 model_list = [copy.deepcopy(model)]
 iterations = [0]
+
+# DATASET BUILDING
+num_snapshots = 10
+if build_dataset:
+    dataset = ([], [])
+    for m in model.modules():
+        if isinstance(m, nn.BatchNorm2d):
+            params = m.weight.data.nelement()
+            dataset[0].append(torch.zeros(params, num_snapshots))
+            dataset[1].append(torch.zeros(params))
+
 for epoch in range(args.start_epoch, args.epochs):
+    new_iterations = fsel.balanced(10, epoch+1)
     model_list.append(model)
-    iterations.append(epoch)
+    for i in range(len(iterations)):
+        if iterations[i] not in new_iterations:
+            model_list.pop(i)
+
+    # DATASET BUILDING
+    if build_dataset:
+        layer = 0
+        for m in model.modules():
+            if isinstance(m, nn.BatchNorm2d):
+                params = m.weight.data.nelement()
+                dataset[0][layer][:, epoch] = m.weight.data.view(params)[:]
+                layer += 1
+
     if early_bird_30.early_bird_emerge(model_list, iterations):
         print("[early_bird_30] Find EB!!!!!!!!!, epoch: "+str(epoch))
         if flag_30:
@@ -474,8 +501,18 @@ for epoch in range(args.start_epoch, args.epochs):
         'optimizer': optimizer.state_dict()
     }, is_best, epoch, filepath=args.save, mask=early_bird_70.masks[-1], suff='70')
 
+    model = copy.deepcopy(model_list[-1])
 
-    # model = copy.deepcopy(model_list[-1])
+# DATASET BUILDING
+if build_dataset:
+    layer = 0
+    for m in model.modules():
+        if isinstance(m, nn.BatchNorm2d):
+            params = m.weight.data.nelement()
+            dataset[1][layer][:] = m.weight.data.view(params)[:]
+            layer += 1
+
+    resman.store_binary(dataset_name, dataset)
 
 print("Best accuracy: "+str(best_prec1))
 history_score[-1][0] = best_prec1
