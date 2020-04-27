@@ -433,6 +433,7 @@ for epoch in range(args.start_epoch, args.epochs):
                 layer += 1
 
     iterations = fsel.balanced(num_snapshots, epoch)
+    print(dataset[0][0][0, :])
 
     if early_bird_30.early_bird_emerge(model, dataset[0], iterations):
         print("[early_bird_30] Found EB!!!!!!!!!, epoch: "+str(epoch))
