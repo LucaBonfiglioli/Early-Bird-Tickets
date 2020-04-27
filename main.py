@@ -333,25 +333,21 @@ class EarlyBird():
         self.dists = [1 for i in range(1, self.epoch_keep)]
         self.score_fn = score_fn
 
-    def pruning(self, model_list, percent, iterations):
+    def pruning(self, model, bn_full, percent, iterations):
         total = 0
-        last_model = model_list[-1]
+        last_model = model
         for module in last_model.modules():
             if isinstance(module, nn.BatchNorm2d):
                 total += module.weight.data.shape[0]
 
         # bn = torch.zeros((total, args.epochs - args.start_epoch))
-        bn = torch.zeros((total, len(model_list)))
-        snapshot = 0
-        for model in model_list:
-            index = 0
-            for module in model.modules():
-                if isinstance(module, nn.BatchNorm2d):
-                    size = module.weight.data.shape[0]
-                    # print('module.weight.data.abs().shape', module.weight.data.abs().shape)
-                    bn[index:(index+size), snapshot] = module.weight.data.abs().clone()
-                    index += size
-            snapshot += 1
+        bn = torch.zeros((total, bn_full[0].shape[1]))
+        index = 0
+        for layer in range(len(bn_full)):
+            size = bn_full[layer].shape[0]
+            bn[index:index+size, :] = bn_full[layer][:, :]
+
+        bn = bn[:, iterations]
 
         scores = self.score_fn(bn, iterations)
         # print('scores', scores)
@@ -393,8 +389,8 @@ class EarlyBird():
         else:
             return False
 
-    def early_bird_emerge(self, model_list, iterations):
-        mask = self.pruning(model_list, self.percent, iterations)
+    def early_bird_emerge(self, model, bn_full, iterations):
+        mask = self.pruning(model, bn_full, self.percent, iterations)
         self.put(mask)
         print('mask sum %d' % mask.sum())
         flag = self.cal_dist()
@@ -414,8 +410,6 @@ flag_70 = True
 early_bird_30 = EarlyBird(0.3)
 early_bird_50 = EarlyBird(0.5)
 early_bird_70 = EarlyBird(0.7)
-model_list = [copy.deepcopy(model)]
-iterations = [0]
 
 # DATASET BUILDING
 num_snapshots = 10
@@ -428,13 +422,6 @@ if build_dataset:
             dataset[1].append(torch.zeros(params))
 
 for epoch in range(args.start_epoch, args.epochs):
-    new_iterations = fsel.balanced(10, epoch+1)
-    model_list.append(model)
-    for i in range(len(iterations)):
-        if iterations[i] not in new_iterations:
-            model_list.pop(i)
-            iterations.pop(i)
-    iterations.append(new_iterations[-1])
 
     # DATASET BUILDING
     if build_dataset:
@@ -445,8 +432,10 @@ for epoch in range(args.start_epoch, args.epochs):
                 dataset[0][layer][:, epoch] = m.weight.data.view(params)[:]
                 layer += 1
 
-    if early_bird_30.early_bird_emerge(model_list, iterations):
-        print("[early_bird_30] Find EB!!!!!!!!!, epoch: "+str(epoch))
+    iterations = fsel.balanced(num_snapshots, epoch)
+
+    if early_bird_30.early_bird_emerge(model, dataset[0], iterations):
+        print("[early_bird_30] Found EB!!!!!!!!!, epoch: "+str(epoch))
         if flag_30:
             save_checkpoint({
                 'epoch': epoch + 1,
@@ -455,8 +444,8 @@ for epoch in range(args.start_epoch, args.epochs):
                 'optimizer': optimizer.state_dict()
             }, is_best, 'EB_30_'+str(epoch+1), filepath=args.save, mask=early_bird_30.masks[-1])
             flag_30 = False
-    if early_bird_50.early_bird_emerge(model_list, iterations):
-        print("[early_bird_50] Find EB!!!!!!!!!, epoch: "+str(epoch))
+    if early_bird_50.early_bird_emerge(model, dataset[0], iterations):
+        print("[early_bird_50] Found EB!!!!!!!!!, epoch: "+str(epoch))
         if flag_50:
             save_checkpoint({
                 'epoch': epoch + 1,
@@ -465,8 +454,8 @@ for epoch in range(args.start_epoch, args.epochs):
                 'optimizer': optimizer.state_dict()
             }, is_best, 'EB_50_'+str(epoch+1), filepath=args.save, mask=early_bird_50.masks[-1])
             flag_50 = False
-    if early_bird_70.early_bird_emerge(model_list, iterations):
-        print("[early_bird_70] Find EB!!!!!!!!!, epoch: "+str(epoch))
+    if early_bird_70.early_bird_emerge(model, dataset[0], iterations):
+        print("[early_bird_70] Found EB!!!!!!!!!, epoch: "+str(epoch))
         if flag_70:
             save_checkpoint({
                 'epoch': epoch + 1,
@@ -502,8 +491,6 @@ for epoch in range(args.start_epoch, args.epochs):
         'best_prec1': best_prec1,
         'optimizer': optimizer.state_dict()
     }, is_best, epoch, filepath=args.save, mask=early_bird_70.masks[-1], suff='70')
-
-    model = copy.deepcopy(model_list[-1])
 
 # DATASET BUILDING
 if build_dataset:
