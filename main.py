@@ -348,11 +348,11 @@ class EarlyBird():
             bn[index:index+size, :] = bn_full[layer][:, :]
 
         bn = bn[:, iterations]
-        print(iterations)
-        print(bn[0, :])
+        # print(iterations)
+        # print(bn[0, :])
 
         scores = self.score_fn(bn, iterations)
-        # print('scores', scores)
+        print('scores', scores)
         y, i = torch.sort(scores)
         thre_index = int(total * percent)
         thre = y[thre_index]
