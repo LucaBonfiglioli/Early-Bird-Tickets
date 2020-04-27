@@ -346,6 +346,7 @@ class EarlyBird():
         for layer in range(len(bn_full)):
             size = bn_full[layer].shape[0]
             bn[index:index+size, :] = bn_full[layer][:, :]
+            index += size
 
         bn = bn[:, iterations]
         # print(iterations)
