@@ -433,6 +433,8 @@ for epoch in range(args.start_epoch, args.epochs):
     for i in range(len(iterations)):
         if iterations[i] not in new_iterations:
             model_list.pop(i)
+            iterations.pop(i)
+    iterations.append(new_iterations[-1])
 
     # DATASET BUILDING
     if build_dataset:
@@ -447,30 +449,30 @@ for epoch in range(args.start_epoch, args.epochs):
         print("[early_bird_30] Find EB!!!!!!!!!, epoch: "+str(epoch))
         if flag_30:
             save_checkpoint({
-            'epoch': epoch + 1,
-            'state_dict': model.state_dict(),
-            'best_prec1': best_prec1,
-            'optimizer': optimizer.state_dict()
+                'epoch': epoch + 1,
+                'state_dict': model.state_dict(),
+                'best_prec1': best_prec1,
+                'optimizer': optimizer.state_dict()
             }, is_best, 'EB_30_'+str(epoch+1), filepath=args.save, mask=early_bird_30.masks[-1])
             flag_30 = False
     if early_bird_50.early_bird_emerge(model_list, iterations):
         print("[early_bird_50] Find EB!!!!!!!!!, epoch: "+str(epoch))
         if flag_50:
             save_checkpoint({
-            'epoch': epoch + 1,
-            'state_dict': model.state_dict(),
-            'best_prec1': best_prec1,
-            'optimizer': optimizer.state_dict()
+                'epoch': epoch + 1,
+                'state_dict': model.state_dict(),
+                'best_prec1': best_prec1,
+                'optimizer': optimizer.state_dict()
             }, is_best, 'EB_50_'+str(epoch+1), filepath=args.save, mask=early_bird_50.masks[-1])
             flag_50 = False
     if early_bird_70.early_bird_emerge(model_list, iterations):
         print("[early_bird_70] Find EB!!!!!!!!!, epoch: "+str(epoch))
         if flag_70:
             save_checkpoint({
-            'epoch': epoch + 1,
-            'state_dict': model.state_dict(),
-            'best_prec1': best_prec1,
-            'optimizer': optimizer.state_dict()
+                'epoch': epoch + 1,
+                'state_dict': model.state_dict(),
+                'best_prec1': best_prec1,
+                'optimizer': optimizer.state_dict()
             }, is_best, 'EB_70_'+str(epoch+1), filepath=args.save, mask=early_bird_70.masks[-1])
             flag_70 = False
     if epoch in args.schedule:
