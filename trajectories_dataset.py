@@ -12,6 +12,15 @@ import feature_selection as fsel
 # n_estimators = 400, learning_rate = 0.022, max_depth = 8, subsample = 0.55
 
 
+def merge_datasets(input_files, output_file):
+    d = [utils.load_binary(f) for f in input_files]
+    out = ([], [])
+    for l in range(len(d[0][0])):
+        out[0].append(torch.cat([d[i][0][l] for i in range(len(d))]))
+        out[1].append(torch.cat([d[i][1][l] for i in range(len(d))]))
+    utils.store_binary(output_file, out)
+
+
 def select_features(dataset, features, layer, downsample=1):
     x = dataset[0][layer][:, features]
     y = dataset[1][layer]
@@ -113,15 +122,15 @@ class HandcraftedRegressor:
 #                          downsample_rates=None)
 
 # Hyperparameter grid search
-# param_grid_ = {'n_estimators': [190],
-#                'learning_rate': [0.046],
-#                'max_depth': [5],
-#                'subsample': [0.75]}
-# tr_set_ = utils.load_binary('data/trajectories/conv4_cifar10_100x67_tr_0')
-# features_ = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-# x_, y_ = stack_layers(tr_set_, features_, downsample_rates=[1, 1, 1, 1, 1, 1, 1.5, 1, 20, 1, 1, 1, 1, 1])
-# cv = GridSearchCV(GradientBoostingRegressor(), param_grid_, n_jobs=-1, verbose=2)
-# cv.fit(np.array(x_), np.array(y_))
+param_grid_ = {'n_estimators': [100, 200, 300, 400, 500],
+               'learning_rate': [0.001, 0.003, 0.01, 0.03, 0.1, 0.3],
+               'max_depth': [3, 4, 5, 6],
+               'subsample': [0.5, 0.6, 0.7, 0.8, 0.9, 1]}
+tr_set_ = utils.load_binary('results/datasets/vgg16-cifar100_tr')
+features_ = [0, 16, 24, 32, 40, 48, 56, 64, 72, 80]
+x_, y_ = stack_layers(tr_set_, features_)
+cv = GridSearchCV(GradientBoostingRegressor(), param_grid_, n_jobs=-1, verbose=2)
+cv.fit(np.array(x_), np.array(y_))
 
 # Training set downsampling
 # tr_set = utils.load_binary('data/trajectories/conv4_cifar10_100x67_tr_0')
