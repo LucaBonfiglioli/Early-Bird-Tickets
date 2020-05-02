@@ -140,5 +140,5 @@ for i in range(160):
     x_, y_ = stack_layers(dataset, features_)
     reg = GradientBoostingRegressor(n_estimators=260, subsample=0.22, learning_rate=0.0125, max_depth=9)
     reg.fit(x_, y_)
-    utils.store_binary('results/regressors/vgg16-cifar100_reg_%d' % i)
+    utils.store_binary('results/regressors/vgg16-cifar100_reg_%d' % i, reg)
 
