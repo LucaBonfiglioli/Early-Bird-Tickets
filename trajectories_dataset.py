@@ -10,6 +10,8 @@ import feature_selection as fsel
 # n_estimators = 190, learning_rate = 0.046, max_depth = 5, subsample = 0.75
 # Hyperparameters for gbr on cifar10:
 # n_estimators = 400, learning_rate = 0.022, max_depth = 8, subsample = 0.55
+# Hyperparameters for gbr on vgg160cifar100:
+# n_estimators = 260, learning_rate = 0.0125, max_depth = 9, subsample = 0.22
 
 
 def merge_datasets(input_files, output_file):
@@ -121,30 +123,22 @@ class HandcraftedRegressor:
 #                          runs=10, name='fc_mnist_gbr_tuned_bal_cross', reg_path='results/regressors/fc_mnist_bal/reg_%d',
 #                          downsample_rates=None)
 
-# Hyperparameter grid search
-param_grid_ = {'n_estimators': [100, 200, 300, 400, 500],
-               'learning_rate': [0.001, 0.003, 0.01, 0.03, 0.1, 0.3],
-               'max_depth': [3, 4, 5, 6],
-               'subsample': [0.5, 0.6, 0.7, 0.8, 0.9, 1]}
-tr_set_ = utils.load_binary('results/datasets/vgg16-cifar100_tr')
-features_ = [0, 16, 24, 32, 40, 48, 56, 64, 72, 80]
-x_, y_ = stack_layers(tr_set_, features_)
-cv = GridSearchCV(GradientBoostingRegressor(), param_grid_, n_jobs=-1, verbose=2)
-cv.fit(np.array(x_), np.array(y_))
+# # Hyperparameter grid search
+# param_grid_ = {'n_estimators': [100, 200, 300, 400, 500],
+#                'learning_rate': [0.001, 0.003, 0.01, 0.03, 0.1, 0.3],
+#                'max_depth': [3, 4, 5, 6],
+#                'subsample': [0.5, 0.6, 0.7, 0.8, 0.9, 1]}
+# tr_set_ = utils.load_binary('results/datasets/vgg16-cifar100_tr')
+# features_ = [0, 16, 24, 32, 40, 48, 56, 64, 72, 80]
+# x_, y_ = stack_layers(tr_set_, features_)
+# cv = GridSearchCV(GradientBoostingRegressor(), param_grid_, n_jobs=6, verbose=2)
+# cv.fit(np.array(x_), np.array(y_))
 
-# Training set downsampling
-# tr_set = utils.load_binary('data/trajectories/conv4_cifar10_100x67_tr_0')
-# ev_set = utils.load_binary('data/trajectories/conv4_cifar10_100x67_ev_0')
-# features_ = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-# x_, y_ = stack_layers(tr_set, features_)
-# x_d_, y_d_ = stack_layers(tr_set, features_, downsample_rates=[1, 1, 1, 1, 1, 1, 1.5, 1, 20, 1, 1, 1, 1, 1])
-# print(y_.nelement())
-# print(y_d_.nelement())
-# # print('training full')
-# # reg = GradientBoostingRegressor()
-# # reg.fit(x, y)
-# reg = utils.load_binary('results/regressors/temp_full')
-# print('training downsampled')
-# reg_d = GradientBoostingRegressor()
-# reg_d.fit(x_d_, y_d_)
-# print(eval_regressor_fixed(reg_d, ev_set, features_) - eval_regressor_fixed(reg, ev_set, features_))
+dataset = utils.load_binary('results/datasets/vgg16-cifar100_tr')
+for i in range(160):
+    features_ = fsel.balanced(10, i)
+    x_, y_ = stack_layers(dataset, features_)
+    reg = GradientBoostingRegressor(n_estimators=260, subsample=0.22, learning_rate=0.0125, max_depth=9)
+    reg.fit(x_, y_)
+    utils.store_binary('results/regressors/vgg16-cifar100_reg_%d' % i)
+
