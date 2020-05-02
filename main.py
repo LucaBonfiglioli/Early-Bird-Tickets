@@ -21,6 +21,8 @@ import copy
 import results_manager as resman
 
 default_score = score.large_final
+gbr = True
+gbr_base = './results/regressors/vgg-cifar100_reg_%d'
 build_dataset = True
 dataset_name = './results/datasets/vgg16-cifar100_tr0'
 
@@ -425,6 +427,11 @@ if build_dataset:
             dataset[1].append(torch.zeros(params))
 
 for epoch in range(args.start_epoch, args.epochs):
+
+    # GBR
+    if gbr:
+        reg = resman.load_binary(gbr_base % epoch)
+        default_score = score.gbr_fn(reg, fsel.balanced(10, epoch))
 
     # DATASET BUILDING
     if build_dataset:
