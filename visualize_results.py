@@ -3,7 +3,7 @@ import results_manager as resm
 import numpy as np
 
 
-def plot_with_intervals(ax: plt.Axes, x_vals, y_vals, band_fn='minmax', const=False, pos=1, lfactor=50, alpha=1, decay=5, label=None, **kwargs):
+def plot_with_intervals(ax: plt.Axes, x_vals, y_vals, band_fn='std', const=False, pos=1, lfactor=50, alpha=1, decay=5, label=None, **kwargs):
     ax.plot(x_vals, np.mean(y_vals, 0), label=label, alpha=alpha, **kwargs)
     if decay > 0:
         alpha /= decay
@@ -58,18 +58,19 @@ def visualize(filenames, labels, colors, snap_list, pr_list, name='eb_results'):
             ax[j].set_axisbelow(True)
             ax[j].legend()
             ax[j].set_ylabel('Test Accuracy')
+            ax[j].set_xlim(10, 160)
     ax[-1].set_xlabel('Epochs')
     fig.tight_layout()
     plt.show()
 
 
-# base_names = './results/vgg16-cifar100_lfg_%d.json'
-# out = './results/vgg16-cifar100_lfg.json'
-# files = [base_names % (i+1) for i in range(5)]
+# base_names = './results/vgg16-cifar100_gbr_vgg16-cifar100_%d.json'
+# out = './results/vgg16-cifar100_gbr_vgg16-cifar100.json'
+# files = [base_names % (i) for i in range(5)]
 # merge_runs(files, out)
-#
-filenames = ['./results/vgg16-cifar100_lf.json', './results/vgg16-cifar100_lfg.json']
-labels = ['lf', 'lfg']
+
+filenames = ['./results/vgg16-cifar100_lf.json', './results/vgg16-cifar100_lfg.json', './results/vgg16-cifar100_gbr_vgg16-cifar100.json']
+labels = ['lf', 'lfg', 'gbr']
 colors = plt.cm.tab10.colors
 snap_list = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160]
 pr_list = [30, 50, 70]

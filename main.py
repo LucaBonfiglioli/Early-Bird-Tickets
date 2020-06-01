@@ -22,9 +22,10 @@ import results_manager as resman
 
 default_score = score.large_final
 gbr = True
-gbr_base = './results/regressors/vgg-cifar100_reg_%d'
+gbr_base = './results/regressors/vgg16-cifar100_reg_%d'
 build_dataset = True
-dataset_name = './results/datasets/vgg16-cifar100_tr0'
+# dataset_name = './results/datasets/vgg16-cifar100_tr0'
+dataset_name = './results/datasets/temp'
 
 # Training settings
 parser = argparse.ArgumentParser(description='PyTorch Slimming CIFAR training')
